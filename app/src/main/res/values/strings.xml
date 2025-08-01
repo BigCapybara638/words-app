@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">WordsApp</string>
-    <string name="title_home">Home</string>
-    <string name="title_dashboard">Dashboard</string>
-    <string name="title_notifications">Notifications</string>
+    <string name="title_home">Коллекция</string>
+    <string name="title_dashboard">Обучение</string>
+    <string name="title_notifications">Меню</string>
+    <string name="start_learning">Начать обучение</string>
 </resources>

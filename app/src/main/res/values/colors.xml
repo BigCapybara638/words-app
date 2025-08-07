@@ -9,4 +9,7 @@
     <color name="white">#FFFFFFFF</color>
     <color name="purple_222">#F46B27</color>
     <color name="system_grey">#EDE5E0</color>
+    <color name="bar_black">#211F1F</color>
+    <color name="bar_black_real">#3A3737</color>
+    <color name="purple_223">#B44215</color>
 </resources>

@@ -111,13 +111,12 @@ class DbHelper(val context: Context, factory: SQLiteDatabase.CursorFactory?) :
         return selectedCategory
     }
 
-
-    /*// Метод для получения всех элементов
-    fun getAllItems(): List<Item> {
-        val items = mutableListOf<Item>()
+    // Метод для получения всех элементов
+    fun getAllCategory(): List<WordCategory> {
+        val items = mutableListOf<WordCategory>()
         val db = readableDatabase
         val cursor = db.query(
-            "plans",
+            "category",
             null,
             null,
             null,
@@ -129,10 +128,9 @@ class DbHelper(val context: Context, factory: SQLiteDatabase.CursorFactory?) :
         with(cursor) {
             while (moveToNext()) {
                 val id = getInt(getColumnIndexOrThrow("id"))
-                val title = getString(getColumnIndexOrThrow("title"))
-                val date = getString(getColumnIndexOrThrow("date"))
-                val publish = getString(getColumnIndexOrThrow("published"))
-                items.add(Item(id, title, date, publish))
+                val name = getString(getColumnIndexOrThrow("name"))
+                val selected = getInt(getColumnIndexOrThrow("selected"))
+                items.add(WordCategory(id, name, selected))
             }
             close()
         }
@@ -140,7 +138,7 @@ class DbHelper(val context: Context, factory: SQLiteDatabase.CursorFactory?) :
         return items
     }
 
-    fun getTodayItems(): List<Item> {
+    /*fun getTodayItems(): List<Item> {
         val today = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date())
         val todayItems = mutableListOf<Item>()
 

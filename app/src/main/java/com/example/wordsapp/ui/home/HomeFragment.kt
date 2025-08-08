@@ -1,6 +1,7 @@
 package com.example.wordsapp.ui.home
 
 import android.app.AlertDialog
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -75,17 +76,25 @@ class HomeFragment : Fragment() {
             .setPositiveButton("Добавить") { _, _ ->
                 val categoryName = inputEditText.text.toString().trim()
                 if (categoryName.isNotBlank()) {
-                    if (dbHelper.addCategory(categoryName)) {
-                        Toast.makeText(
-                            requireContext(),
-                            "Коллекция '$categoryName' добавлена",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        loadCategories() // Обновляем список после добавления
+                    if (categoryName.length < 15) {
+                        if (dbHelper.addCategory(categoryName)) {
+                            Toast.makeText(
+                                requireContext(),
+                                "Коллекция '$categoryName' добавлена",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            loadCategories() // Обновляем список после добавления
+                        } else {
+                            Toast.makeText(
+                                requireContext(),
+                                "Ошибка при добавлении коллекции",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
                     } else {
                         Toast.makeText(
                             requireContext(),
-                            "Ошибка при добавлении коллекции",
+                            "Ошибка: Максимальная длинна строки: 15 символов",
                             Toast.LENGTH_SHORT
                         ).show()
                     }

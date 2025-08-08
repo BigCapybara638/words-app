@@ -40,6 +40,30 @@ class DbHelper(val context: Context, factory: SQLiteDatabase.CursorFactory?) :
         db.close()
     }
 
+    fun getWordsInCategory(categoryId: Int): List<Word> {
+        val db = readableDatabase
+        val wordsList = mutableListOf<Word>()
+
+        val query = """
+        SELECT words.* FROM words
+        WHERE words.idCategory = ?
+    """.trimIndent()
+
+        db.rawQuery(query, arrayOf(categoryId.toString())).use { cursor ->
+            while (cursor.moveToNext()) {
+                val id = cursor.getInt(cursor.getColumnIndexOrThrow("id"))
+                val wordText = cursor.getString(cursor.getColumnIndexOrThrow("wordText"))
+                val translation = cursor.getString(cursor.getColumnIndexOrThrow("translation"))
+                val idCategory = cursor.getInt(cursor.getColumnIndexOrThrow("idCategory"))
+                val indexLearning = cursor.getInt(cursor.getColumnIndexOrThrow("indexLearning"))
+
+                wordsList.add(Word(id, wordText, translation, idCategory, indexLearning))
+            }
+        }
+
+        return wordsList
+    }
+
     // понизить индекс
     fun loverIndexLearning(wordId: Int): Boolean {
         val db = this.writableDatabase
@@ -111,7 +135,15 @@ class DbHelper(val context: Context, factory: SQLiteDatabase.CursorFactory?) :
         return selectedCategory
     }
 
-    // Метод для получения всех элементов
+
+    fun updateCategorySelected(id: Long, selected: Int) {
+        writableDatabase.execSQL(
+            "UPDATE categories SET selected = ? WHERE id = ?",
+            arrayOf(selected, id)
+        )
+    }
+
+    // Метод для получения всех категорий
     fun getAllCategory(): List<WordCategory> {
         val items = mutableListOf<WordCategory>()
         val db = readableDatabase

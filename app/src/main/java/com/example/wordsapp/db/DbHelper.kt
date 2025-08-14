@@ -27,12 +27,12 @@ class DbHelper(val context: Context, factory: SQLiteDatabase.CursorFactory?) :
         onCreate(db)    }
 
     // добавление слова
-    fun addWord(word: Word) {
+    fun addWord(original: String, translate: String, idCategory: Int) {
         val values = ContentValues()
-        values.put("original", word.original)
-        values.put("translate", word.translate)
-        values.put("idCategory", word.idCategory)
-        values.put("indexLearning", word.indexLearning)
+        values.put("original", original)
+        values.put("translate", translate)
+        values.put("idCategory", idCategory)
+        values.put("indexLearning", 5)
 
         val db = this.writableDatabase
         db.insert("words", null, values)
@@ -101,15 +101,37 @@ class DbHelper(val context: Context, factory: SQLiteDatabase.CursorFactory?) :
     }
 
     // добавление категории
-    fun addCategory(name: String) : Boolean {
-        val values = ContentValues()
-        values.put("name", name)
-
+    fun addCategory(name: String): Boolean {
         val db = this.writableDatabase
-        db.insert("category", null, values)
+        var newId = 1L // Значение по умолчанию, если таблица пуста
 
-        db.close()
-        return true
+        db.beginTransaction()
+        try {
+            // 1. Получаем текущий максимальный ID
+            val cursor = db.rawQuery("SELECT MAX(id) FROM category", null)
+            cursor.use {
+                if (it.moveToFirst() && !it.isNull(0)) {
+                    newId = it.getLong(0) + 1
+                }
+            }
+
+            // 2. Вставляем новую запись
+            val values = ContentValues().apply {
+                put("id", newId)
+                put("name", name)
+                put("selected", 0)
+            }
+
+            val result = db.insert("category", null, values)
+            db.setTransactionSuccessful()
+            return true
+        } catch (e: Exception) {
+            Log.e("DB", "Error adding category", e)
+            return false
+        } finally {
+            db.endTransaction()
+            db.close()
+        }
     }
 
     fun getSelectedCategory(): List<WordCategory> {

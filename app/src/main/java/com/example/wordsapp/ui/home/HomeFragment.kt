@@ -13,6 +13,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -20,6 +21,7 @@ import com.example.wordsapp.R
 import com.example.wordsapp.data.WordCategory
 import com.example.wordsapp.databinding.FragmentHomeBinding
 import com.example.wordsapp.db.DbHelper
+import com.example.wordsapp.ui.dashboard.DashboardFragment
 
 class HomeFragment : Fragment() {
 
@@ -125,9 +127,13 @@ class HomeFragment : Fragment() {
             fun bind(category: WordCategory) {
                 itemView.findViewById<android.widget.TextView>(R.id.category_name).text = category.name
                 // Здесь можно установить изображение, если оно есть
-                itemView.setOnClickListener { onItemClick(category) }
+                itemView.setOnClickListener {
+                    onItemClick(category)
+                    findNavController().navigate(R.id.action_first_to_second)
+                }
             }
-        }
+
+    }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CategoryViewHolder {
             val view = LayoutInflater.from(parent.context)

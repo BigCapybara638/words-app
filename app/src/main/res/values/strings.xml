@@ -3,6 +3,9 @@
     <string name="title_home">Коллекция</string>
     <string name="title_dashboard">Обучение</string>
     <string name="title_notifications">Меню</string>
+
     <string name="start_learning">Начать обучение</string>
     <string name="add_category">Добавить коллекцию</string>
+    <string name="add_word">Добавить слово</string>
+
 </resources>

@@ -1,5 +1,6 @@
 package com.example.wordsapp.ui.home
 
+import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.res.Resources
 import android.os.Bundle
@@ -15,6 +16,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.wordsapp.R
 import com.example.wordsapp.data.Word
 import com.example.wordsapp.data.WordCategory
@@ -46,12 +48,29 @@ class CategoryFragment : Fragment() {
             showTwoFieldDialog()
         }
 
+        setupRecyclerView()
+
         val categoryName = arguments?.getString("categoryName") ?: "Коллекция"
+        val categoryId = arguments?.getInt("categoryId") ?: 1
 
         // Устанавливаем заголовок в AppBar
         (activity as AppCompatActivity).supportActionBar?.title = categoryName
 
         return root
+    }
+
+    private fun setupRecyclerView() {
+        adapter = WordsAdapter(emptyList()) { word ->
+            // Обработка клика на слово
+        }
+
+        binding.wordsRecyclerView.apply {
+            layoutManager = LinearLayoutManager(requireContext())
+            adapter = this@CategoryFragment.adapter
+        }
+
+        // Загружаем слова при инициализации
+        loadWords()
     }
 
     // Kotlin версия
@@ -70,9 +89,10 @@ class CategoryFragment : Fragment() {
                 // Действия при нажатии OK
 
                 if (text1.isNotEmpty() && text2.isNotEmpty()) {
-                    val result = dbHelper.addWord(text1, text2, 3)
+                    val result = dbHelper.addWord(text1, text2, arguments?.getInt("categoryId") ?: 1)
                     Toast.makeText(requireContext(), "Слово добавлено!", Toast.LENGTH_SHORT).show()
                     // Обновляем список слов, если нужно
+                    setupRecyclerView()
                     // (например, через интерфейс обратного вызова)
 
                 } else {
@@ -91,8 +111,8 @@ class CategoryFragment : Fragment() {
         _binding = null
     }
 
-    private fun loadCategories() {
-        val words = dbHelper.getWordsInCategory(3) // Предполагается, что такой метод есть в DbHelper
+    private fun loadWords() {
+        val words = dbHelper.getWordsInCategory(arguments?.getInt("categoryId") ?: 1) // Предполагается, что такой метод есть в DbHelper
         adapter.updateWords(words)
     }
 
@@ -103,7 +123,9 @@ class CategoryFragment : Fragment() {
 
         inner class WordsViewHolder(itemView: View) : androidx.recyclerview.widget.RecyclerView.ViewHolder(itemView) {
             fun bind(category: Word) {
-                itemView.findViewById<android.widget.TextView>(R.id.category_name).text = category.translate
+                itemView.findViewById<android.widget.TextView>(R.id.word_original).text = category.original
+                itemView.findViewById<android.widget.TextView>(R.id.word_translate).text = category.translate
+
                 // Здесь можно установить изображение, если оно есть
                 itemView.setOnClickListener {
                    // onItemClick(words)
@@ -114,7 +136,7 @@ class CategoryFragment : Fragment() {
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): WordsViewHolder {
             val view = LayoutInflater.from(parent.context)
-                .inflate(R.layout.item_category_card, parent, false)
+                .inflate(R.layout.item_word, parent, false)
             return WordsViewHolder(view)
         }
 
@@ -128,6 +150,7 @@ class CategoryFragment : Fragment() {
 
         fun updateWords(newWords: List<Word>) {
             words = newWords
+            notifyDataSetChanged()
         }
     }
 

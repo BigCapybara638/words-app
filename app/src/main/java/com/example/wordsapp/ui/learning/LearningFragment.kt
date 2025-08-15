@@ -1,4 +1,4 @@
-package com.example.wordsapp.ui.dashboard
+package com.example.wordsapp.ui.learning
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -9,11 +9,11 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import com.example.wordsapp.R
-import com.example.wordsapp.databinding.FragmentDashboardBinding
+import com.example.wordsapp.databinding.FragmentLearningBinding
 
-class DashboardFragment : Fragment() {
+class LearningFragment : Fragment() {
 
-    private var _binding: FragmentDashboardBinding? = null
+    private var _binding: FragmentLearningBinding? = null
 
     // This property is only valid between onCreateView and
     // onDestroyView.
@@ -25,18 +25,10 @@ class DashboardFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
 
-        _binding = FragmentDashboardBinding.inflate(inflater, container, false)
+        _binding = FragmentLearningBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
         return root
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        binding.startLearning.setOnClickListener {
-            findNavController().navigate(R.id.action_third_to_fourth)
-        }
     }
 
     override fun onDestroyView() {

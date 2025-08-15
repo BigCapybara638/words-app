@@ -27,17 +27,23 @@ class DbHelper(val context: Context, factory: SQLiteDatabase.CursorFactory?) :
         onCreate(db)    }
 
     // добавление слова
-    fun addWord(original: String, translate: String, idCategory: Int) {
-        val values = ContentValues()
-        values.put("original", original)
-        values.put("translate", translate)
-        values.put("idCategory", idCategory)
-        values.put("indexLearning", 5)
-
+    fun addWord(original: String, translate: String, idCategory: Int): Boolean {
         val db = this.writableDatabase
-        db.insert("words", null, values)
+        val values = ContentValues().apply {
+            put("original", original)
+            put("translate", translate)
+            put("idCategory", idCategory)
+            put("indexLearning", 5) // Начальный индекс обучения
+        }
 
-        db.close()
+        return try {
+            val result = db.insert("words", null, values) != -1L
+            result
+        } catch (e: Exception) {
+            false
+        } finally {
+            db.close()
+        }
     }
 
     fun getWordsInCategory(categoryId: Int): List<Word> {
@@ -45,19 +51,25 @@ class DbHelper(val context: Context, factory: SQLiteDatabase.CursorFactory?) :
         val wordsList = mutableListOf<Word>()
 
         val query = """
-        SELECT words.* FROM words
-        WHERE words.idCategory = ?
+        SELECT * FROM words
+        WHERE idCategory = ?
     """.trimIndent()
 
         db.rawQuery(query, arrayOf(categoryId.toString())).use { cursor ->
-            while (cursor.moveToNext()) {
-                val id = cursor.getInt(cursor.getColumnIndexOrThrow("id"))
-                val wordText = cursor.getString(cursor.getColumnIndexOrThrow("wordText"))
-                val translation = cursor.getString(cursor.getColumnIndexOrThrow("translation"))
-                val idCategory = cursor.getInt(cursor.getColumnIndexOrThrow("idCategory"))
-                val indexLearning = cursor.getInt(cursor.getColumnIndexOrThrow("indexLearning"))
+            val idIndex = cursor.getColumnIndexOrThrow("id")
+            val originalIndex = cursor.getColumnIndexOrThrow("original")
+            val translateIndex = cursor.getColumnIndexOrThrow("translate")
+            val idCategoryIndex = cursor.getColumnIndexOrThrow("idCategory")
+            val indexLearningIndex = cursor.getColumnIndexOrThrow("indexLearning")
 
-                wordsList.add(Word(id, wordText, translation, idCategory, indexLearning))
+            while (cursor.moveToNext()) {
+                val id = cursor.getInt(idIndex)
+                val original = cursor.getString(originalIndex)
+                val translate = cursor.getString(translateIndex)
+                val idCategory = cursor.getInt(idCategoryIndex)
+                val indexLearning = cursor.getInt(indexLearningIndex)
+
+                wordsList.add(Word(id, original, translate, idCategory, indexLearning))
             }
         }
 

@@ -37,6 +37,8 @@ class HomeFragment : Fragment() {
     ): View {
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
         dbHelper = DbHelper(requireContext(), null)
+
+
         return binding.root
     }
 
@@ -127,9 +129,14 @@ class HomeFragment : Fragment() {
             fun bind(category: WordCategory) {
                 itemView.findViewById<android.widget.TextView>(R.id.category_name).text = category.name
                 // Здесь можно установить изображение, если оно есть
+                val bundle = Bundle().apply {
+                    putString("categoryName", category.name)
+                    putInt("categoryId", category.id) // предполагается, что у WordCategory есть поле id
+                }
+
                 itemView.setOnClickListener {
                     onItemClick(category)
-                    findNavController().navigate(R.id.action_first_to_second)
+                    findNavController().navigate(R.id.action_first_to_second, bundle)
                 }
             }
 

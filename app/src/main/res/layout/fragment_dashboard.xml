@@ -18,7 +18,7 @@
         android:orientation="horizontal"
         app:cardCornerRadius="8dp"
         app:cardElevation="2dp"
-        app:layout_constraintBottom_toTopOf="@+id/start_learn"
+        app:layout_constraintBottom_toTopOf="@+id/startLearning"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.094"
         tools:layout_editor_absoluteX="6dp">
@@ -63,7 +63,7 @@
         android:orientation="horizontal"
         app:cardCornerRadius="8dp"
         app:cardElevation="2dp"
-        app:layout_constraintBottom_toTopOf="@+id/start_learn"
+        app:layout_constraintBottom_toTopOf="@+id/startLearning"
         app:layout_constraintTop_toBottomOf="@+id/cardView"
         app:layout_constraintVertical_bias="0.028"
         tools:layout_editor_absoluteX="6dp">
@@ -133,7 +133,7 @@
     </androidx.cardview.widget.CardView>
 
     <Button
-        android:id="@+id/start_learn"
+        android:id="@+id/startLearning"
         android:layout_width="283dp"
         android:layout_height="51dp"
         android:text="@string/start_learning"

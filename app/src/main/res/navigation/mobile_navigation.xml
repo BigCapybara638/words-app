@@ -24,7 +24,17 @@
         android:id="@+id/navigation_dashboard"
         android:name="com.example.wordsapp.ui.dashboard.DashboardFragment"
         android:label="@string/title_dashboard"
-        tools:layout="@layout/fragment_dashboard" />
+        tools:layout="@layout/fragment_dashboard">
+
+        <action
+            android:id="@+id/action_third_to_fourth"
+            app:destination="@id/navigation_learning"
+            app:popUpTo="@id/navigation_dashboard"
+            app:popUpToInclusive="false"
+            app:launchSingleTop="true" />
+    </fragment>
+
+
 
     <fragment
         android:id="@+id/navigation_notifications"
@@ -35,6 +45,12 @@
     <fragment
         android:id="@+id/navigation_category"
         android:name="com.example.wordsapp.ui.home.CategoryFragment"
-        android:label="@string/title_dashboard"
+        android:label="@string/title_home"
+        tools:layout="@layout/fragment_category" />
+
+    <fragment
+        android:id="@+id/navigation_learning"
+        android:name="com.example.wordsapp.ui.learning.LearningFragment"
+        android:label="@string/title_learning"
         tools:layout="@layout/fragment_category" />
 </navigation>

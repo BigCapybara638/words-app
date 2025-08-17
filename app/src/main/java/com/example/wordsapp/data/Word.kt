@@ -5,6 +5,6 @@ data class Word(
     val original: String,
     val translate: String,
     val idCategory: Int,
-    val indexLearning: Int = 0,
+    val indexLearning: Int,
 ) {
 }

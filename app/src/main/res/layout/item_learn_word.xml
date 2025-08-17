@@ -26,8 +26,17 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
-                android:textSize="22sp"
+                android:textSize="26sp"
                 android:text="Текст карточки"/>
+
+            <TextView
+                android:id="@+id/tv_card_text_translate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:textSize="18sp"
+                android:layout_marginTop="10dp"
+                android:text="Показать перевод"/>
         </LinearLayout>
 
         <!-- Нижняя часть с кнопками -->

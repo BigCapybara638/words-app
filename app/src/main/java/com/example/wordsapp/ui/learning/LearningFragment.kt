@@ -6,147 +6,161 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
-import android.widget.Toast
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
-import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.DividerItemDecoration
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.wordsapp.R
 import com.example.wordsapp.databinding.FragmentLearningBinding
 import androidx.recyclerview.widget.PagerSnapHelper
+import com.example.wordsapp.data.Word
 import com.example.wordsapp.db.DbHelper
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class LearningFragment : Fragment() {
-
     private var _binding: FragmentLearningBinding? = null
-    private lateinit var adapter: CardAdapter
-    private lateinit var viewModel: LearningViewModel
-
-    // This property is only valid between onCreateView and
-    // onDestroyView.
     private val binding get() = _binding!!
+    private lateinit var dbHelper: DbHelper
+    private lateinit var adapter: LearnWordsAdapter
+    private var currentWords = emptyList<Word>()
+    private var currentPosition = 0
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
+    // Слушатель прокрутки RecyclerView
+    private val scrollListener = object : RecyclerView.OnScrollListener() {
+        override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+            if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                updateCurrentPosition()
+            }
+        }
+    }
 
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentLearningBinding.inflate(inflater, container, false)
-        val root: View = binding.root
-
-        return root
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Создаем тестовые данные
-        val cardItems = List(20) { index ->
-            CardItem("Карточка ${index + 1}")
-        }
+        dbHelper = DbHelper(requireContext(), null)
+        setupRecyclerView()
+        loadWords()
 
-        // Инициализируем адаптер
-        adapter = CardAdapter(
-            items = cardItems,
-            onYesClick = { position ->
-                val db = DbHelper(requireContext(), null)
-                db.upperIndexLearning(id)
-            },
-            onNoClick = { position ->
-                Toast.makeText(
-                    requireContext(),
-                    "Нет нажато на карточке ${position + 1}",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
+    }
+
+    private fun setupRecyclerView() {
+        adapter = LearnWordsAdapter(
+            onYesClick = { updateWordAndShowNext(isKnown = true) },
+            onNoClick = { updateWordAndShowNext(isKnown = false) }
         )
 
-        // Правильная настройка RecyclerView
         binding.recyclerView.apply {
-            // 1. Настройка LayoutManager
-            layoutManager = LinearLayoutManager(
-                requireContext(),
-                LinearLayoutManager.HORIZONTAL, // Горизонтальная прокрутка
-                false
-            )
-
-            // 2. Установка адаптера
+            layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
             adapter = this@LearningFragment.adapter
-
-            // 3. Настройка SnapHelper (выберите один вариант)
-
-            // Вариант A: PagerSnapHelper (как ViewPager)
+            addOnScrollListener(scrollListener)
             PagerSnapHelper().attachToRecyclerView(this)
+        }
+    }
 
-            // ИЛИ Вариант B: LinearSnapHelper (плавное притягивание)
-            // LinearSnapHelper().attachToRecyclerView(this)
+    private fun loadWords() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            currentWords = dbHelper.getAllWords()
+                .flatMap { word -> List(11 - word.indexLearning) { word } }
+                .shuffled()
+                .distinctBy { it.id }
+                .take(20)
 
-            // 4. Отключение эффекта overscroll
-            overScrollMode = RecyclerView.OVER_SCROLL_NEVER
+            withContext(Dispatchers.Main) {
+                adapter.submitList(currentWords)
+                currentPosition = 0
+            }
+        }
+    }
 
-            // 5. Добавление разделителей (опционально)
-            addItemDecoration(
-                DividerItemDecoration(
-                    requireContext(),
-                    LinearLayoutManager.HORIZONTAL
-                ).apply {
-                    setDrawable(
-                        ContextCompat.getDrawable(
-                            requireContext(),
-                            R.drawable.divider
-                        )!!
-                    )
+    private fun updateCurrentPosition() {
+        val layoutManager = binding.recyclerView.layoutManager as LinearLayoutManager
+        val firstVisiblePosition = layoutManager.findFirstVisibleItemPosition()
+        if (firstVisiblePosition != RecyclerView.NO_POSITION && firstVisiblePosition != currentPosition) {
+            currentPosition = firstVisiblePosition
+        }
+    }
+
+    private fun updateWordAndShowNext(isKnown: Boolean) {
+        if (currentPosition !in currentWords.indices) return
+
+        val word = currentWords[currentPosition]
+        val newIndex = if (isKnown) maxOf(1, word.indexLearning - 1) else minOf(10, word.indexLearning + 1)
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            dbHelper.updateWordIndex(word.id, newIndex)
+
+            withContext(Dispatchers.Main) {
+                // Плавный переход к следующему слову
+                if (currentPosition + 1 < currentWords.size) {
+                    currentPosition++
+                    binding.recyclerView.smoothScrollToPosition(currentPosition)
+                } else {
+                    // Все слова пройдены - загружаем новые
+                    loadWords()
                 }
-            )
-
-            // 6. Оптимизация для постраничного скролла
-            setHasFixedSize(true)
-            clipToPadding = false
-            clipChildren = false
-
+            }
         }
     }
 
     override fun onDestroyView() {
+        binding.recyclerView.removeOnScrollListener(scrollListener)
         super.onDestroyView()
         _binding = null
     }
+}
 
-    class CardAdapter(
-        private val items: List<CardItem>,
-        private val onYesClick: (Int) -> Unit,
-        private val onNoClick: (Int) -> Unit
-    ) : RecyclerView.Adapter<CardAdapter.CardViewHolder>() {
+class LearnWordsAdapter(
+    private val onYesClick: (Int) -> Unit,
+    private val onNoClick: (Int) -> Unit
+) : RecyclerView.Adapter<LearnWordsAdapter.LearnWordViewHolder>() {
 
-        inner class CardViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-            private val tvText: TextView = itemView.findViewById(R.id.tv_card_text)
-            private val btnYes: Button = itemView.findViewById(R.id.btn_yes)
-            private val btnNo: Button = itemView.findViewById(R.id.btn_no)
+    private var words = listOf<Word>()
 
-            fun bind(item: CardItem, position: Int) {
-                tvText.text = item.text
+    inner class LearnWordViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val tvCardText: TextView = itemView.findViewById(R.id.tv_card_text)
+        private val btnYes: Button = itemView.findViewById(R.id.btn_yes)
+        private val btnNo: Button = itemView.findViewById(R.id.btn_no)
+        private val btnTranslate: TextView = itemView.findViewById(R.id.tv_card_text_translate)
 
-                btnYes.setOnClickListener { onYesClick(position) }
-                btnNo.setOnClickListener { onNoClick(position) }
+
+        fun bind(word: Word) {
+            tvCardText.text = word.original
+            btnYes.setOnClickListener {
+                onYesClick(adapterPosition)
+                btnTranslate.text = "Показать перевод"
             }
-        }
+            btnNo.setOnClickListener {
+                onNoClick(adapterPosition)
+                btnTranslate.text = "Показать перевод"
+            }
+            btnTranslate.setOnClickListener {
+                btnTranslate.text = word.translate
+            }
 
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CardViewHolder {
-            val view = LayoutInflater.from(parent.context)
-                .inflate(R.layout.item_learn_word, parent, false)
-            return CardViewHolder(view)
         }
-
-        override fun onBindViewHolder(holder: CardViewHolder, position: Int) {
-            holder.bind(items[position], position)
-        }
-
-        override fun getItemCount() = items.size
     }
 
-    data class CardItem(val text: String)
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): LearnWordViewHolder {
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.item_learn_word, parent, false)
+        return LearnWordViewHolder(view)
+    }
+
+    override fun onBindViewHolder(holder: LearnWordViewHolder, position: Int) {
+        holder.bind(words[position])
+    }
+
+    override fun getItemCount() = words.size
+
+    fun submitList(newWords: List<Word>) {
+        words = newWords
+        notifyDataSetChanged()
+    }
 }

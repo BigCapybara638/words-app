@@ -29,7 +29,16 @@ class DbHelper(val context: Context, factory: SQLiteDatabase.CursorFactory?) :
     // добавление слова
     fun addWord(original: String, translate: String, idCategory: Int): Boolean {
         val db = this.writableDatabase
+        var newId = 1L
+        val cursor = db.rawQuery("SELECT MAX(id) FROM words", null)
+        cursor.use {
+            if (it.moveToFirst() && !it.isNull(0)) {
+                newId = it.getLong(0) + 1
+            }
+        }
+
         val values = ContentValues().apply {
+            put("id", newId)
             put("original", original)
             put("translate", translate)
             put("idCategory", idCategory)
@@ -76,40 +85,17 @@ class DbHelper(val context: Context, factory: SQLiteDatabase.CursorFactory?) :
         return wordsList
     }
 
-    // понизить индекс
-    fun loverIndexLearning(wordId: Int): Boolean {
-        val db = this.writableDatabase
+    fun updateWordIndex(wordId: Int, newIndex: Int) {
+        val db = writableDatabase
         val values = ContentValues().apply {
-            put("indexLearning", -1)
+            put("indexLearning", newIndex)
         }
-
-        val rowsAffected = db.update(
+        db.update(
             "words",
             values,
             "id = ?",
             arrayOf(wordId.toString())
         )
-
-        db.close()
-        return rowsAffected > 0
-    }
-
-    // повысить индекс
-    fun upperIndexLearning(wordId: Int): Boolean {
-        val db = this.writableDatabase
-        val values = ContentValues().apply {
-            put("indexLearning", +1)
-        }
-
-        val rowsAffected = db.update(
-            "words",
-            values,
-            "id = ?",
-            arrayOf(wordId.toString())
-        )
-
-        db.close()
-        return rowsAffected > 0
     }
 
     // добавление категории
@@ -222,8 +208,9 @@ class DbHelper(val context: Context, factory: SQLiteDatabase.CursorFactory?) :
                 val id = getInt(getColumnIndexOrThrow("id"))
                 val original = getString(getColumnIndexOrThrow("original"))
                 val translate = getString(getColumnIndexOrThrow("translate"))
+                val idCategory = getInt(getColumnIndexOrThrow("idCategory"))
                 val indexLearning = getInt(getColumnIndexOrThrow("indexLearning"))
-                items.add(Word(id, original, translate, indexLearning))
+                items.add(Word(id, original, translate, idCategory, indexLearning))
             }
             close()
         }

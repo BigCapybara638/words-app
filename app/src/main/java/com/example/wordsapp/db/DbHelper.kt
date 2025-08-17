@@ -204,6 +204,33 @@ class DbHelper(val context: Context, factory: SQLiteDatabase.CursorFactory?) :
         return items
     }
 
+    fun getAllWords(): List<Word> {
+        val items = mutableListOf<Word>()
+        val db = readableDatabase
+        val cursor = db.query(
+            "words",
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        )
+
+        with(cursor) {
+            while (moveToNext()) {
+                val id = getInt(getColumnIndexOrThrow("id"))
+                val original = getString(getColumnIndexOrThrow("original"))
+                val translate = getString(getColumnIndexOrThrow("translate"))
+                val indexLearning = getInt(getColumnIndexOrThrow("indexLearning"))
+                items.add(Word(id, original, translate, indexLearning))
+            }
+            close()
+        }
+        db.close()
+        return items
+    }
+
     /*fun getTodayItems(): List<Item> {
         val today = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date())
         val todayItems = mutableListOf<Item>()

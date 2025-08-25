@@ -132,6 +132,48 @@ class DbHelper(val context: Context, factory: SQLiteDatabase.CursorFactory?) :
         }
     }
 
+    fun deleteCategory(categoryId: Int): Boolean {
+        val db = writableDatabase
+        db.beginTransaction()
+        return try {
+            val rowsAffected = db.delete(
+                "category",
+                "id = ?",
+                arrayOf(categoryId.toString())
+            )
+
+            db.setTransactionSuccessful()
+            rowsAffected > 0
+        } catch (e: Exception) {
+            false
+        } finally {
+            db.endTransaction()
+            db.close()
+        }
+    }
+
+    fun renameCategory(id: Int, name: String): Boolean {
+        val db = writableDatabase
+        return try {
+            val values = ContentValues().apply {
+                put("name", name)
+            }
+
+            val rowsAffected = db.update(
+                "category",
+                values,
+                "id = ?",
+                arrayOf(id.toString())
+            )
+
+            rowsAffected > 0
+        } catch (e: Exception) {
+            false
+        } finally {
+            db.close()
+        }
+    }
+
     fun getSelectedCategory(): List<WordCategory> {
         val selectedCategory = mutableListOf<WordCategory>()
 
@@ -153,14 +195,6 @@ class DbHelper(val context: Context, factory: SQLiteDatabase.CursorFactory?) :
         }
 
         return selectedCategory
-    }
-
-
-    fun updateCategorySelected(id: Long, selected: Int) {
-        writableDatabase.execSQL(
-            "UPDATE categories SET selected = ? WHERE id = ?",
-            arrayOf(selected, id)
-        )
     }
 
     // Метод для получения всех категорий
@@ -216,6 +250,74 @@ class DbHelper(val context: Context, factory: SQLiteDatabase.CursorFactory?) :
         }
         db.close()
         return items
+    }
+
+    fun getCountOfWordsWithIndexLearning(): String {
+        val db = readableDatabase
+        var count = 0
+
+        val cursor = db.rawQuery(
+            "SELECT COUNT(*) FROM words WHERE indexLearning = 1 OR indexLearning = 2",
+            null
+        )
+
+        cursor.use { // Автоматически закрывает курсор после использования
+            if (it.moveToFirst()) {
+                count = it.getInt(0) // Получаем результат COUNT
+            }
+        }
+
+        db.close()
+        return count.toString()
+    }
+
+
+    fun firstStart() {
+        addCategory("Животные")
+        addWord("Lion ", "лев", 1)
+        addWord("Elephant ", "слон", 1)
+        addWord("Panda ", "панда", 1)
+        addWord("Bird", "птица", 1)
+        addWord("Camel", "верблюд", 1)
+        addWord("Tiger", "тигр", 1)
+        addWord("Monkey", "обезьяна", 1)
+        addWord("Fox", "лиса", 1)
+        addWord("Cat", "кот", 1)
+        addWord("Dog", "собака", 1)
+        addWord("Bear", "медведь", 1)
+        addWord("Horse", "лошадь", 1)
+        addWord("Giraffe", "жираф", 1)
+        addWord("Zebra", "зебра", 1)
+        addWord("Squirrel", "белка", 1)
+        addWord("Tortoise", "черепаха", 1)
+        addWord("Snake", "змея", 1)
+        addWord("Lizard", "ящерица", 1)
+        addWord("Alligator", "крокодил", 1)
+        addWord("Elk", "олень", 1)
+
+        addCategory("Числа 1-10")
+        addWord("One ", "один", 2)
+        addWord("Two ", "два", 2)
+        addWord("Three ", "три", 2)
+        addWord("Four", "четыре", 2)
+        addWord("Five", "пять", 2)
+        addWord("Six", "шесть", 2)
+        addWord("Seven", "семь", 2)
+        addWord("Eight", "восемь", 2)
+        addWord("Nine", "девять", 2)
+        addWord("Ten", "десять", 2)
+
+        addCategory("Числа 11-20")
+        addWord("Eleven ", "одиннадцать", 3)
+        addWord("Twelve ", "двенадцать", 3)
+        addWord("Thirteen ", "тринадцать", 3)
+        addWord("Fourteen", "четырнадцать", 3)
+        addWord("Fifteen", "пятнадцать", 3)
+        addWord("Sixteen", "шестнадцать", 3)
+        addWord("Seventeen", "семнадцать", 3)
+        addWord("Eighteen", "восемнадцать", 3)
+        addWord("Nineteen", "девятнадцать", 3)
+        addWord("Twenty", "двадцать", 3)
     }
 
     /*fun getTodayItems(): List<Item> {

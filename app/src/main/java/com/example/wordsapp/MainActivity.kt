@@ -1,5 +1,6 @@
 package com.example.wordsapp
 
+import android.content.Context
 import android.content.res.Configuration
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
@@ -15,10 +16,12 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.example.wordsapp.databinding.ActivityMainBinding
+import com.example.wordsapp.db.DbHelper
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var navController: NavController
+    private lateinit var dbHelper: DbHelper
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,6 +52,11 @@ class MainActivity : AppCompatActivity() {
 
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
+
+        dbHelper = DbHelper(this, null)
+        if (isFirstLaunch(this)) {
+            dbHelper.firstStart()
+        }
     }
 
     override fun onSupportNavigateUp(): Boolean {
@@ -60,5 +68,17 @@ class MainActivity : AppCompatActivity() {
             Configuration.UI_MODE_NIGHT_YES -> true
             else -> false
         }
+    }
+
+    fun isFirstLaunch(context: Context): Boolean {
+        val sharedPreferences = context.getSharedPreferences("AppPreferences", Context.MODE_PRIVATE)
+        val isFirstTime = sharedPreferences.getBoolean("is_first_launch", true)
+
+        if (isFirstTime) {
+            // Сохраняем флаг, что приложение уже запускалось
+            sharedPreferences.edit().putBoolean("is_first_launch", false).apply()
+            return true
+        }
+        return false
     }
 }

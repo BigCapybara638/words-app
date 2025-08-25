@@ -27,6 +27,7 @@
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:textSize="26sp"
+                android:textStyle="bold"
                 android:text="Текст карточки"/>
 
             <TextView

@@ -3,11 +3,16 @@ package com.example.wordsapp.ui.home
 import android.app.AlertDialog
 import android.content.Context
 import android.os.Bundle
+import android.transition.TransitionManager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
+import android.widget.CheckBox
 import android.widget.EditText
+import android.widget.LinearLayout
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
@@ -17,6 +22,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.wordsapp.R
 import com.example.wordsapp.data.WordCategory
 import com.example.wordsapp.databinding.FragmentHomeBinding
@@ -126,6 +132,11 @@ class HomeFragment : Fragment() {
     ) : androidx.recyclerview.widget.RecyclerView.Adapter<CategoryAdapter.CategoryViewHolder>() {
 
         inner class CategoryViewHolder(itemView: View) : androidx.recyclerview.widget.RecyclerView.ViewHolder(itemView) {
+            private val checkbox: CheckBox = itemView.findViewById(R.id.checkbox2)
+            private val expandedButtons: LinearLayout = itemView.findViewById(R.id.expandedButtons)
+            private val btnEdit: Button = itemView.findViewById(R.id.btnEdit)
+            private val btnDelete: Button = itemView.findViewById(R.id.btnDelete)
+
             fun bind(category: WordCategory) {
                 itemView.findViewById<android.widget.TextView>(R.id.category_name).text = category.name
                 // Здесь можно установить изображение, если оно есть
@@ -134,13 +145,101 @@ class HomeFragment : Fragment() {
                     putInt("categoryId", category.id) // предполагается, что у WordCategory есть поле id
                 }
 
+                expandedButtons.requestLayout() // Принудительное обновление
+                itemView.requestLayout()
+
                 itemView.setOnClickListener {
                     onItemClick(category)
                     findNavController().navigate(R.id.action_first_to_second, bundle)
                 }
+
+                itemView.setOnLongClickListener {
+                    toggleExpansion(category)
+                    true
+                }
+
+                btnEdit.setOnClickListener {
+                    onRename(category)
+                    loadCategories()
+                }
+
+                btnDelete.setOnClickListener {
+                    onDelete(category)
+                    loadCategories()
+                }
             }
 
-    }
+            private fun toggleExpansion(category: WordCategory) {
+                category.isExpanded = !category.isExpanded
+
+                if (category.isExpanded) {
+                    expandItem()
+                } else {
+                    collapseItem()
+                }
+
+                // Анимируем изменение
+                TransitionManager.beginDelayedTransition(itemView as ViewGroup)
+            }
+
+            private fun expandItem() {
+                expandedButtons.visibility = View.VISIBLE
+                // фон itemView.setBackgroundColor(ContextCompat.getColor(itemView.context, R.color.purple_222))
+                val params = itemView.layoutParams as ViewGroup.MarginLayoutParams
+                params.width = ViewGroup.LayoutParams.MATCH_PARENT
+                params.height = 260
+                itemView.layoutParams = params
+            }
+
+            private fun collapseItem() {
+                expandedButtons.visibility = View.GONE
+                // Возвращаем обычную ширину
+                val params = itemView.layoutParams as ViewGroup.MarginLayoutParams
+                params.width = ViewGroup.LayoutParams.MATCH_PARENT
+                params.height = -260
+                itemView.layoutParams = params
+            }
+
+            private fun onDelete(category: WordCategory) {
+                dbHelper = DbHelper(requireContext(), null)
+                AlertDialog.Builder(requireContext())
+                    .setTitle("Подтверждение")
+                    .setMessage("Вы точно хотите удалить категорию ${category.name}?")
+                    .setPositiveButton("Ок") { _, _ ->
+                        dbHelper.deleteCategory(category.id)
+                        loadCategories()
+                        Toast.makeText(
+                            requireContext(),
+                            "Категория ${category.name} успешно удалена",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                    .setNegativeButton("Отмена", null)
+                    .create().show()
+            }
+
+            private fun onRename(category: WordCategory) {
+                val inputEditText = EditText(requireContext()).apply {
+                    hint = "Введите название коллекции"
+                }
+                dbHelper = DbHelper(requireContext(), null)
+                AlertDialog.Builder(requireContext())
+                    .setTitle("Изменить название")
+                    .setView(inputEditText)
+                    .setPositiveButton("Ок") { _, _ ->
+                        dbHelper.renameCategory(category.id, inputEditText.text.toString())
+                        loadCategories()
+                        Toast.makeText(
+                            requireContext(),
+                            "Категория ${category.name} успешно переименована",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                    .setNegativeButton("Отмена", null)
+                    .create().show()
+            }
+
+        }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CategoryViewHolder {
             val view = LayoutInflater.from(parent.context)

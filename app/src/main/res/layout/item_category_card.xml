@@ -10,6 +10,7 @@
 
 
     <LinearLayout
+        android:id="@+id/mainContent"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
@@ -23,7 +24,8 @@
             android:textSize="22sp"
             android:textStyle="normal"
             android:layout_gravity="center"
-            android:layout_margin="6dp"/>
+            android:layout_margin="6dp"
+            android:maxLines="1"/>
 
         <View
             android:layout_width="0dp"
@@ -39,29 +41,34 @@
 
     </LinearLayout>
 
-    <!--<LinearLayout
-        android:id="@+id/buttons_layout"
+    <!-- Дополнительные кнопки (изначально скрыты) -->
+    <LinearLayout
+        android:id="@+id/expandedButtons"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:visibility="gone"
-        android:padding="8dp">
+        android:layout_marginTop="40dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:gravity="center"
+        app:layout_constraintTop_toBottomOf="@id/mainContent">
 
         <Button
-            android:id="@+id/btn_rename"
-            android:layout_width="0dp"
+            android:id="@+id/btnEdit"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:text="Переименовать"
-            android:layout_marginEnd="4dp"/>
+            android:layout_marginEnd="4dp"
+            />
 
         <Button
-            android:id="@+id/btn_delete"
-            android:layout_width="0dp"
+            android:id="@+id/btnDelete"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:text="Удалить"
             android:layout_marginStart="4dp"/>
 
-    </LinearLayout> -->
+    </LinearLayout>
+
 </androidx.cardview.widget.CardView>

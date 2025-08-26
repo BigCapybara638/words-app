@@ -327,6 +327,33 @@ class DbHelper(val context: Context, factory: SQLiteDatabase.CursorFactory?) :
         return words
     }
 
+    fun getWordsCountFromSelectedCategories(): Int {
+        var count = 0
+
+        readableDatabase.use { db ->
+            val table = "words JOIN category ON words.idCategory = category.id"
+            val columns = arrayOf("COUNT(*) as count")
+            val selection = "category.selected = ?"
+            val selectionArgs = arrayOf("1")
+
+            db.query(
+                table,
+                columns,
+                selection,
+                selectionArgs,
+                null,
+                null,
+                null
+            ).use { cursor ->
+                if (cursor.moveToFirst()) {
+                    count = cursor.getInt(cursor.getColumnIndexOrThrow("count"))
+                }
+            }
+        }
+
+        return count
+    }
+
     fun getCountOfWordsWithIndexLearning(): String {
         val db = readableDatabase
         var count = 0

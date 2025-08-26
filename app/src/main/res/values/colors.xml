@@ -12,4 +12,8 @@
     <color name="bar_black">#211F1F</color>
     <color name="bar_black_real">#3A3737</color>
     <color name="purple_223">#B44215</color>
+
+    <color name="learned">#11B33E</color>
+    <color name="learned50">#E0D605</color>
+    <color name="nolearned">#B41515</color>
 </resources>

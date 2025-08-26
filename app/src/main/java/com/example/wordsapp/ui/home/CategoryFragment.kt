@@ -3,11 +3,13 @@ package com.example.wordsapp.ui.home
 import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.res.Resources
+import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -125,6 +127,21 @@ class CategoryFragment : Fragment() {
             fun bind(category: Word) {
                 itemView.findViewById<android.widget.TextView>(R.id.word_original).text = category.original
                 itemView.findViewById<android.widget.TextView>(R.id.word_translate).text = category.translate
+                val imageLearning: ImageView = itemView.findViewById(R.id.imageLearned)
+                val textLearning: TextView = itemView.findViewById(R.id.word_indexLearning)
+
+
+                if (category.indexLearning < 3) {
+                    imageLearning.setColorFilter(Color.GREEN)
+                    textLearning.text = "Изучено"
+                }
+                if (category.indexLearning in 3..4) {
+                    imageLearning.setColorFilter(Color.YELLOW)
+                }
+                if (category.indexLearning > 4) {
+                    imageLearning.setColorFilter(Color.RED)
+                }
+
 
                 // Здесь можно установить изображение, если оно есть
                 itemView.setOnClickListener {

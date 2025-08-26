@@ -44,6 +44,7 @@ class DashboardFragment : Fragment() {
 
         dbHelper = DbHelper(requireContext(), null)
         binding.allLearn.text = dbHelper.getCountOfWordsWithIndexLearning()
+        binding.addLearn.text = dbHelper.getWordsCountFromSelectedCategories().toString()
 
 //        binding.discreteSlider.setLabelFormatter { value ->
 //            when (value) {

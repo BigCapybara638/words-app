@@ -132,7 +132,7 @@ class HomeFragment : Fragment() {
     ) : androidx.recyclerview.widget.RecyclerView.Adapter<CategoryAdapter.CategoryViewHolder>() {
 
         inner class CategoryViewHolder(itemView: View) : androidx.recyclerview.widget.RecyclerView.ViewHolder(itemView) {
-            private val checkbox: CheckBox = itemView.findViewById(R.id.checkbox2)
+            private val checkBox: CheckBox = itemView.findViewById(R.id.checkbox2)
             private val expandedButtons: LinearLayout = itemView.findViewById(R.id.expandedButtons)
             private val btnEdit: Button = itemView.findViewById(R.id.btnEdit)
             private val btnDelete: Button = itemView.findViewById(R.id.btnDelete)
@@ -147,6 +147,12 @@ class HomeFragment : Fragment() {
 
                 expandedButtons.requestLayout() // Принудительное обновление
                 itemView.requestLayout()
+
+                checkBox.isChecked = category.selected == 1
+
+                checkBox.setOnCheckedChangeListener { _, _ ->
+                    dbHelper.setIsCheckedCategory(category)
+                }
 
                 itemView.setOnClickListener {
                     onItemClick(category)
@@ -206,6 +212,7 @@ class HomeFragment : Fragment() {
                     .setTitle("Подтверждение")
                     .setMessage("Вы точно хотите удалить категорию ${category.name}?")
                     .setPositiveButton("Ок") { _, _ ->
+                        dbHelper.deleteWordsCategory(category.id)
                         dbHelper.deleteCategory(category.id)
                         loadCategories()
                         Toast.makeText(
@@ -220,7 +227,9 @@ class HomeFragment : Fragment() {
 
             private fun onRename(category: WordCategory) {
                 val inputEditText = EditText(requireContext()).apply {
-                    hint = "Введите название коллекции"
+                    hint = "Название категории"
+                    setText(category.name) // Tекущее название
+                    setSelection(category.name.length) // Курсор в конец текста
                 }
                 dbHelper = DbHelper(requireContext(), null)
                 AlertDialog.Builder(requireContext())

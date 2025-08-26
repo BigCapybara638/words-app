@@ -131,6 +131,25 @@ class DbHelper(val context: Context, factory: SQLiteDatabase.CursorFactory?) :
             db.close()
         }
     }
+    fun deleteWordsCategory(categoryId: Int): Boolean {
+        val db = writableDatabase
+        db.beginTransaction()
+        return try {
+            val rowsAffected = db.delete(
+                "words",
+                "idCategory = ?",
+                arrayOf(categoryId.toString())
+            )
+
+            db.setTransactionSuccessful()
+            rowsAffected > 0
+        } catch (e: Exception) {
+            false
+        } finally {
+            db.endTransaction()
+            db.close()
+        }
+    }
 
     fun deleteCategory(categoryId: Int): Boolean {
         val db = writableDatabase
@@ -174,23 +193,47 @@ class DbHelper(val context: Context, factory: SQLiteDatabase.CursorFactory?) :
         }
     }
 
+    fun setIsCheckedCategory(category: WordCategory): Boolean {
+        val db = writableDatabase
+        return try {
+            val values = ContentValues().apply {
+                put("selected", if (category.selected == 1) 0 else 1)
+            }
+
+            val rowsAffected = db.update(
+                "category",
+                values,
+                "id = ?",
+                arrayOf(category.id.toString())
+            )
+
+            rowsAffected > 0
+        } catch (e: Exception) {
+            false
+        } finally {
+            db.close()
+        }
+    }
+
     fun getSelectedCategory(): List<WordCategory> {
         val selectedCategory = mutableListOf<WordCategory>()
 
-        val db = readableDatabase
-
-        val cursor = db.rawQuery(
-            """SELECT * FROM category 
-           WHERE selected = ?""",
-            arrayOf("1")
-        )
-
-        cursor.use {
-            while (it.moveToNext()) {
-                val id = it.getInt(it.getColumnIndexOrThrow("id"))
-                val name = it.getString(it.getColumnIndexOrThrow("name"))
-                val selected = it.getInt(it.getColumnIndexOrThrow("selected"))
-                selectedCategory.add(WordCategory(id, name, selected))
+        readableDatabase.use { db ->
+            db.query(
+                "category",
+                null,
+                "selected = ?",
+                arrayOf("1"),
+                null,
+                null,
+                null
+            ).use { cursor ->
+                while (cursor.moveToNext()) {
+                    val id = cursor.getInt(cursor.getColumnIndexOrThrow("id"))
+                    val name = cursor.getString(cursor.getColumnIndexOrThrow("name"))
+                    val selected = cursor.getInt(cursor.getColumnIndexOrThrow("selected"))
+                    selectedCategory.add(WordCategory(id, name, selected))
+                }
             }
         }
 
@@ -252,6 +295,38 @@ class DbHelper(val context: Context, factory: SQLiteDatabase.CursorFactory?) :
         return items
     }
 
+    fun getWordsFromSelectedCategories(): List<Word> {
+        val words = mutableListOf<Word>()
+
+        readableDatabase.use { db ->
+            val table = "words JOIN category ON words.idCategory = category.id"
+            val columns = arrayOf("words.*", "category.name as category_name")
+            val selection = "category.selected = ?"
+            val selectionArgs = arrayOf("1")
+
+            db.query(
+                table,
+                columns,
+                selection,
+                selectionArgs,
+                null,
+                null,
+                null
+            ).use { cursor ->
+                while (cursor.moveToNext()) {
+                    val id = cursor.getInt(cursor.getColumnIndexOrThrow("id"))
+                    val original = cursor.getString(cursor.getColumnIndexOrThrow("original"))
+                    val translate = cursor.getString(cursor.getColumnIndexOrThrow("translate"))
+                    val idCategory = cursor.getInt(cursor.getColumnIndexOrThrow("idCategory"))
+                    val indexLearning = cursor.getInt(cursor.getColumnIndexOrThrow("indexLearning"))
+                    words.add(Word(id, original, translate, idCategory, indexLearning))
+                }
+            }
+        }
+
+        return words
+    }
+
     fun getCountOfWordsWithIndexLearning(): String {
         val db = readableDatabase
         var count = 0
@@ -295,7 +370,7 @@ class DbHelper(val context: Context, factory: SQLiteDatabase.CursorFactory?) :
         addWord("Alligator", "крокодил", 1)
         addWord("Elk", "олень", 1)
 
-        addCategory("Числа 1-10")
+        addCategory("Числа 1-20")
         addWord("One ", "один", 2)
         addWord("Two ", "два", 2)
         addWord("Three ", "три", 2)
@@ -306,60 +381,74 @@ class DbHelper(val context: Context, factory: SQLiteDatabase.CursorFactory?) :
         addWord("Eight", "восемь", 2)
         addWord("Nine", "девять", 2)
         addWord("Ten", "десять", 2)
+        addWord("Eleven ", "одиннадцать", 2)
+        addWord("Twelve ", "двенадцать", 2)
+        addWord("Thirteen ", "тринадцать", 2)
+        addWord("Fourteen", "четырнадцать", 2)
+        addWord("Fifteen", "пятнадцать", 2)
+        addWord("Sixteen", "шестнадцать", 2)
+        addWord("Seventeen", "семнадцать", 2)
+        addWord("Eighteen", "восемнадцать", 2)
+        addWord("Nineteen", "девятнадцать", 2)
+        addWord("Twenty", "двадцать", 2)
 
-        addCategory("Числа 11-20")
-        addWord("Eleven ", "одиннадцать", 3)
-        addWord("Twelve ", "двенадцать", 3)
-        addWord("Thirteen ", "тринадцать", 3)
-        addWord("Fourteen", "четырнадцать", 3)
-        addWord("Fifteen", "пятнадцать", 3)
-        addWord("Sixteen", "шестнадцать", 3)
-        addWord("Seventeen", "семнадцать", 3)
-        addWord("Eighteen", "восемнадцать", 3)
-        addWord("Nineteen", "девятнадцать", 3)
-        addWord("Twenty", "двадцать", 3)
+        addCategory("Глаголы A1")
+        addWord("Do ", "делать", 3)
+        addWord("Feel ", "чувствовать", 3)
+        addWord("See ", "видеть", 3)
+        addWord("Hear", "слышать", 3)
+        addWord("Run", "бежать", 3)
+        addWord("Get", "получать", 3)
+        addWord("Make", "делать", 3)
+        addWord("Cook", "готовить", 3)
+        addWord("Sing", "петь", 3)
+        addWord("Speak", "разговаривать", 3)
+        addWord("Say ", "говорить", 3)
+        addWord("Tell ", "рассказывать", 3)
+        addWord("Take", "брать", 3)
+        addWord("Sit", "садиться", 3)
+        addWord("Stand", "стоять", 3)
+        addWord("Laugh", "смеяться", 3)
+        addWord("Smile", "улыбаться", 3)
+        addWord("Open", "открывать", 3)
+        addWord("Close", "закрывать", 3)
+        addWord("Love ", "любить", 3)
+        addWord("Like ", "нравиться", 3)
+        addWord("Give ", "давать", 3)
+        addWord("Bring", "приносить", 3)
+        addWord("Breath", "дышать", 3)
+        addWord("Buy", "покупать", 3)
+        addWord("Sell", "продавать", 3)
+        addWord("Forget", "забывать", 3)
+        addWord("Believe", "верить", 3)
+        addWord("Have", "иметь", 3)
+        addWord("Go", "идти", 3)
+        addWord("Know", "знать", 3)
+        addWord("Think", "думать", 3)
+        addWord("Come", "приходить", 3)
+        addWord("Want", "хотеть", 3)
+        addWord("Use", "использовать", 3)
+        addWord("Find", "находить", 3)
+        addWord("Work ", "работать", 3)
+        addWord("Eat ", "есть", 3)
+        addWord("Drink ", "пить", 3)
+        addWord("Write", "писать", 3)
+        addWord("Read", "читать", 3)
+        addWord("Call", "звонить", 3)
+        addWord("Try", "пытаться", 3)
+        addWord("Need", "нуждаться", 3)
+        addWord("Become", "становиться", 3)
+        addWord("Put", "класть", 3)
+        addWord("Pay", "платить", 3)
+        addWord("Play", "играть", 3)
+
+        addCategory("Прилагательные A1")
+        addCategory("Наречия A1")
+        addCategory("Семья")
+        addCategory("Окружающий мир")
+        addCategory("Для туриста")
+
+
+
     }
-
-    /*fun getTodayItems(): List<Item> {
-        val today = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date())
-        val todayItems = mutableListOf<Item>()
-
-        val db = readableDatabase
-
-        // Лучший вариант: если дата хранится в формате dd.MM.yyyy
-        val cursor = db.rawQuery(
-            """SELECT * FROM plans 
-           WHERE date = ?""",
-            arrayOf(today)
-        )
-
-        cursor.use {
-            while (it.moveToNext()) {
-                val id = it.getInt(it.getColumnIndexOrThrow("id"))
-                val title = it.getString(it.getColumnIndexOrThrow("title"))
-                val date = it.getString(it.getColumnIndexOrThrow("date"))
-                val publish = it.getString(it.getColumnIndexOrThrow("published"))
-                todayItems.add(Item(id, title, date, publish))
-            }
-        }
-
-        return todayItems
-    }
-
-    fun updatePublisher(itemId: Int, newPublisher: String): Boolean {
-        val db = this.writableDatabase
-        val values = ContentValues().apply {
-            put("publisher", newPublisher)
-        }
-
-        val rowsAffected = db.update(
-            "your_table_name",
-            values,
-            "id = ?",
-            arrayOf(itemId.toString())
-        )
-
-        db.close()
-        return rowsAffected > 0
-    }*/
 }

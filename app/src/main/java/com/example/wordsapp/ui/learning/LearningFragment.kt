@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -66,7 +67,7 @@ class LearningFragment : Fragment() {
 
     private fun loadWords() {
         lifecycleScope.launch(Dispatchers.IO) {
-            currentWords = dbHelper.getAllWords()
+            currentWords = dbHelper.getWordsFromSelectedCategories()
                 .flatMap { word -> List(11 - word.indexLearning) { word } }
                 .shuffled()
                 .distinctBy { it.id }
@@ -97,7 +98,7 @@ class LearningFragment : Fragment() {
             dbHelper.updateWordIndex(word.id, newIndex)
 
             withContext(Dispatchers.Main) {
-                // Плавный переход к следующему слову
+                 // Плавный переход к следующему слову
                 if (currentPosition + 1 < currentWords.size) {
                     currentPosition++
                     binding.recyclerView.smoothScrollToPosition(currentPosition)

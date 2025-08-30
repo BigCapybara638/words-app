@@ -10,6 +10,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import com.example.wordsapp.R
+import com.example.wordsapp.StreakManager
 import com.example.wordsapp.databinding.FragmentDashboardBinding
 import com.example.wordsapp.db.DbHelper
 import com.google.android.material.slider.Slider
@@ -18,6 +19,7 @@ class DashboardFragment : Fragment() {
 
     private var _binding: FragmentDashboardBinding? = null
     private lateinit var dbHelper: DbHelper
+    private lateinit var streakManager: StreakManager
 
     // This property is only valid between onCreateView and
     // onDestroyView.
@@ -41,6 +43,8 @@ class DashboardFragment : Fragment() {
         binding.startLearning.setOnClickListener {
             findNavController().navigate(R.id.action_third_to_fourth)
         }
+        streakManager = StreakManager(requireContext())
+        updateStreakDisplay()
 
         dbHelper = DbHelper(requireContext(), null)
         binding.allLearn.text = dbHelper.getCountOfWordsWithIndexLearning()
@@ -67,9 +71,8 @@ class DashboardFragment : Fragment() {
 
     }
 
-    fun updateSelection(position: Int) {
-        Toast.makeText(requireContext(), "Выбрана позиция $position", Toast.LENGTH_SHORT).show()
-    }
+    private fun updateStreakDisplay() {
+        binding.streak.text = "${streakManager.getCurrentStreak()}\n"}
 
     override fun onDestroyView() {
         super.onDestroyView()

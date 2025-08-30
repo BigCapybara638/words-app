@@ -8,7 +8,9 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
@@ -26,6 +28,9 @@ import com.example.wordsapp.databinding.FragmentCategoryBinding
 import com.example.wordsapp.databinding.FragmentNotificationsBinding
 import com.example.wordsapp.db.DbHelper
 import com.example.wordsapp.ui.home.HomeFragment.CategoryAdapter
+import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
 class CategoryFragment : Fragment() {
 
@@ -118,6 +123,23 @@ class CategoryFragment : Fragment() {
         adapter.updateWords(words)
     }
 
+    fun showCustomBottomSheet() {
+        val dialog = BottomSheetDialog(requireContext())
+        val view = layoutInflater.inflate(R.layout.custom_bottom_sheet, null)
+        dialog.setContentView(view)
+
+        // Настройка поведения
+        val behavior = dialog.behavior
+        behavior.state = BottomSheetBehavior.STATE_EXPANDED
+        behavior.peekHeight = 600 // Высота по умолчанию
+
+        view.findViewById<Button>(R.id.close_button).setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialog.show()
+    }
+
     inner class WordsAdapter(
         private var words: List<Word>,
         private val onItemClick: (Word) -> Unit
@@ -142,11 +164,12 @@ class CategoryFragment : Fragment() {
                     imageLearning.setColorFilter(Color.RED)
                 }
 
-
                 // Здесь можно установить изображение, если оно есть
                 itemView.setOnClickListener {
                    // onItemClick(words)
                 }
+
+
             }
 
         }
@@ -159,7 +182,6 @@ class CategoryFragment : Fragment() {
 
         override fun onBindViewHolder(holder: WordsViewHolder, position: Int) {
             holder.bind(words[position])
-
         }
 
 

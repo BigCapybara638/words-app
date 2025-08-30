@@ -1,5 +1,6 @@
 package com.example.wordsapp.ui.learning
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -14,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.wordsapp.R
 import com.example.wordsapp.databinding.FragmentLearningBinding
 import androidx.recyclerview.widget.PagerSnapHelper
+import com.example.wordsapp.StreakManager
 import com.example.wordsapp.data.Word
 import com.example.wordsapp.db.DbHelper
 import kotlinx.coroutines.Dispatchers
@@ -27,6 +29,7 @@ class LearningFragment : Fragment() {
     private lateinit var adapter: LearnWordsAdapter
     private var currentWords = emptyList<Word>()
     private var currentPosition = 0
+    private lateinit var streakManager: StreakManager
 
     // Слушатель прокрутки RecyclerView
     private val scrollListener = object : RecyclerView.OnScrollListener() {

@@ -108,6 +108,7 @@ class LearningFragment : Fragment() {
                 } else {
                     // Все слова пройдены - загружаем новые
                     loadWords()
+
                 }
             }
         }

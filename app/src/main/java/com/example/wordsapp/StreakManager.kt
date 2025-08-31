@@ -70,5 +70,12 @@ class StreakManager(context: Context) {
         return 1
     }
 
+    fun isStreakUpdatedToday(): Boolean {
+        val today = dateFormat.format(Date())
+        val lastDate = prefs.getString("last_date", null)
+
+        return lastDate == today
+    }
+
     fun getCurrentStreak(): Int = prefs.getInt("current_streak", 0)
 }

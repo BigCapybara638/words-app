@@ -1,5 +1,6 @@
 package com.example.wordsapp.ui.dashboard
 
+import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -72,7 +73,11 @@ class DashboardFragment : Fragment() {
     }
 
     private fun updateStreakDisplay() {
-        binding.streak.text = "${streakManager.getCurrentStreak()}\n"}
+        binding.streak.text = "${streakManager.getCurrentStreak()}\n"
+        if (!streakManager.isStreakUpdatedToday()) {
+            binding.streak.setTextColor(Color.GRAY)
+        }
+    }
 
     override fun onDestroyView() {
         super.onDestroyView()
